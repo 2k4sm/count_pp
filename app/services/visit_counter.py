@@ -6,8 +6,7 @@ from ..core.redis_manager import RedisManager
 class VisitCounterService:
     def __init__(self):
         """Initialize the visit counter service with Redis manager"""
-        # self.redis_manager = RedisManager()
-        self.visit_count_set : Dict[str, int] = {}
+        self.redis_manager = RedisManager()
     async def increment_visit(self, page_id: str) -> None:
         """
         Increment visit count for a page
@@ -15,8 +14,7 @@ class VisitCounterService:
         Args:
             page_id: Unique identifier for the page
         """
-        self.visit_count_set[page_id] = self.visit_count_set.get(page_id,0) + 1
-        # print(self.visit_count_set)
+        await self.redis_manager.increment(page_id)
 
     async def get_visit_count(self, page_id: str) -> int:
         """
@@ -28,7 +26,5 @@ class VisitCounterService:
         Returns:
             Current visit count
         """
-        # print(self.visit_count_set)
-        return self.visit_count_set.get(page_id,0)
-
-visit_counter_service = VisitCounterService()
+        
+        return await self.redis_manager.get(page_id)

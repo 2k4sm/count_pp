@@ -2,6 +2,8 @@ import redis
 from typing import Dict, List, Optional, Any
 from .consistent_hash import ConsistentHash
 from .config import settings
+from urllib.parse import urlparse
+import asyncio
 
 class RedisManager:
     def __init__(self):
@@ -12,11 +14,21 @@ class RedisManager:
         # Parse Redis nodes from comma-separated string
         redis_nodes = [node.strip() for node in settings.REDIS_NODES.split(",") if node.strip()]
         self.consistent_hash = ConsistentHash(redis_nodes, settings.VIRTUAL_NODES)
-        
         # TODO: Initialize connection pools for each Redis node
         # 1. Create connection pools for each Redis node
         # 2. Initialize Redis clients
-        pass
+
+        for node_url in redis_nodes:
+            parsed_url = urlparse(node_url)
+
+            hostname = parsed_url.hostname
+            port = parsed_url.port
+            
+            pool = redis.ConnectionPool(host=hostname, port=port, decode_responses=True)
+            self.connection_pools[hostname] = pool
+            
+            client = redis.Redis(connection_pool=pool)
+            self.redis_clients[hostname] = client
 
     async def get_connection(self, key: str) -> redis.Redis:
         """
@@ -31,7 +43,8 @@ class RedisManager:
         # TODO: Implement getting the appropriate Redis connection
         # 1. Use consistent hashing to determine which node should handle this key
         # 2. Return the Redis client for that node
-        pass
+        
+        return self.redis_clients.get(key)
 
     async def increment(self, key: str, amount: int = 1) -> int:
         """
@@ -48,7 +61,11 @@ class RedisManager:
         # 1. Get the appropriate Redis connection
         # 2. Increment the counter
         # 3. Handle potential failures and retries
-        return 0
+        
+        conn = await self.get_connection("redis1")
+        print(conn)
+        return await asyncio.to_thread(conn.incr, key, amount)
+        
 
     async def get(self, key: str) -> Optional[int]:
         """
@@ -64,4 +81,7 @@ class RedisManager:
         # 1. Get the appropriate Redis connection
         # 2. Retrieve the value
         # 3. Handle potential failures and retries
-        return None
+        
+        conn = await self.get_connection("redis1")
+        value = await asyncio.to_thread(conn.get, key)
+        return int(value) if value is not None else 0

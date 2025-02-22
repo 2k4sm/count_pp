@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
-from ....services.visit_counter import visit_counter_service, VisitCounterService
+from ....services.visit_counter import VisitCounterService
 from ....schemas.counter import VisitCount
 
 router = APIRouter()
 
 # Dependency to get VisitCounterService instance
 def get_visit_counter_service():
-    return visit_counter_service
+    return VisitCounterService()
 
 @router.post("/visit/{page_id}")
 async def record_visit(
