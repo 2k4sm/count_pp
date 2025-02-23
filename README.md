@@ -1,6 +1,6 @@
 # Visit Counter Assignment
 
-This is a starter codebase for implementing a distributed visit counter service using FastAPI, Redis, and Docker.
+A distributed visit counter service using FastAPI, Redis, and Docker.
 
 ## Architecture Overview
 

@@ -63,7 +63,6 @@ class RedisManager:
         # 3. Handle potential failures and retries
         
         conn = await self.get_connection("redis1")
-        print(conn)
         return await asyncio.to_thread(conn.incr, key, amount)
         
 
